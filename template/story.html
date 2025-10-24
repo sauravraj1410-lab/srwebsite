@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>50 विस्तृत हिंदी कहानियाँ — क्लिक करें और सुनें</title>
+  <style>
+    :root{--bg:#fff;--card:#f7f7f9;--accent:#6b46c1;--muted:#666}
+    body{font-family: "Noto Sans Devanagari", system-ui, Arial; margin:0; background:linear-gradient(180deg,#fff,#f3f6ff); color:#111}
+    .wrap{max-width:1100px;margin:24px auto;padding:20px}
+    header{display:flex;align-items:center;gap:16px}
+    h1{margin:0;font-size:1.6rem}
+    .controls{margin-left:auto;display:flex;gap:8px;align-items:center}
+    input[type=search]{padding:8px;border-radius:8px;border:1px solid #ddd;width:240px}
+    select,button{padding:8px;border-radius:8px;border:1px solid #ddd;background:white}
+    .grid{display:grid;grid-template-columns:320px 1fr;gap:18px;margin-top:18px}
+    .list{background:var(--card);padding:12px;border-radius:10px;height:78vh;overflow:auto}
+    .story-item{padding:10px;border-radius:8px;margin-bottom:8px;cursor:pointer}
+    .story-item:hover{background:#fff}
+    .title{font-weight:600}
+    .cat{font-size:0.8rem;color:var(--muted)}
+    .reader{background:white;padding:18px;border-radius:10px;height:78vh;overflow:auto;box-shadow:0 6px 18px rgba(40,40,80,0.06)}
+    .story-content{font-size:1.1rem;line-height:1.7;white-space:pre-wrap}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .small{font-size:0.9rem;padding:6px 8px}
+    footer{margin-top:16px;font-size:0.85rem;color:var(--muted)}
+    @media(max-width:900px){.grid{grid-template-columns:1fr;}.list{height:40vh}.reader{height:50vh}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>50 विस्तृत हिंदी कहानियाँ — क्लिक करें और सुनें</h1>
+        <div style="font-size:0.9rem;color:var(--muted)">प्रत्येक कहानी विस्तृत — पढ़ने और सुनने दोनों के लिए तैयार। (पहला बैच: 5 विस्तृत कहानियाँ जोड़ दी गईं)</div>
+      </div>
+      <div class="controls">
+        <input id="search" type="search" placeholder="कहानी खोजें या शब्द दर्ज करें..." />
+        <select id="filter">
+          <option value="all">सब कैटेगरी</option>
+          <option value="fairy">परी-कथा</option>
+          <option value="motivational">प्रेरणा</option>
+          <option value="romantic">रोमांटिक</option>
+          <option value="folk">लोककथा</option>
+          <option value="moral">नैतिक</option>
+        </select>
+        <button id="shuffle">रैंपल</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <aside class="list" id="list"></aside>
+
+      <main class="reader">
+        <div class="toolbar">
+          <button class="small" id="play">▶️ प्ले</button>
+          <button class="small" id="pause">⏸️ पॉज़</button>
+          <button class="small" id="resume">▶️ जारी रखें</button>
+          <button class="small" id="stop">⏹️ बंद करें</button>
+          <label class="small">दर: <input id="rate" type="range" min="0.6" max="1.6" step="0.1" value="1"/></label>
+          <label class="small">पिच: <input id="pitch" type="range" min="0.6" max="2" step="0.1" value="1"/></label>
+          <label class="small">वॉल्यूम: <input id="volume" type="range" min="0" max="1" step="0.1" value="1"/></label>
+          <select id="voice" class="small"></select>
+        </div>
+
+        <h2 id="story-title">किसी कहानी पर क्लिक कीजिए</h2>
+        <div class="story-content" id="story-content">कहानी का पूरा विस्तृत पाठ यहाँ दिखेगा और ऑडियो उसी समय बोलेगा।</div>
+        <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+          <button id="download-text" class="small">टेक्स्ट डाउनलोड करें</button>
+          <button id="stop-speech" class="small">बात बंद करें</button>
+        </div>
+        <footer>
+          नोट: आवाज ब्राउज़र के SpeechSynthesis पर निर्भर करती है; कुछ ब्राउज़रों/डिवाइसों में हिन्दी आवाज उपलब्ध न हो।
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // BATCH 1: पाँच विस्तृत कहानियाँ (प्रत्येक का पाठ लंबा और कथात्मक है) — आगे और बैच जोड़ने के लिए बताइए।
+    const stories = [
+      {
+        title: "परी-कथा: चाँदनी की छड़ी",
+        category: "fairy",
+        content: `चाँदनी गाँव की सबसे छोटी और सबसे जिज्ञासु लड़की थी। बचपन से ही उसे तारे और चाँद बहुत भाते थे। हर रात जब बाकी बच्चे सो जाते, चाँदनी छत पर बैठकर आसमान के किनारों को घूरती और सोचती कि वहाँ क्या होगा — क्या कोई उससे भी बातें करेगा?
+
+एक बरसात की रात, जब चाँद छुपा हुआ था और गांव के सभी घरों में दीप जले थे, चाँदनी ने जंगल के पास एक अजीब-सी चमक देखी। उसने देखा कि जमीन पर कुछ छोटा-सा चमक रहा है। जिज्ञासा से भरकर वह वहाँ गई और पाई एक छड़ी — पर वह कोई आम छड़ी नहीं थी। छड़ी में हल्की-सी रोशनी चल रही थी और जब चाँदनी ने उसे उठाया तो उसे एक मीठी आवाज सुनाई दी: "तुम्हारी दयालुता इस छड़ी को सक्रिय कर देगी।"
+
+चाँदनी ने सोचा कि यह किसी जादू की वस्तु होगी, पर उससे बड़ी बात थी उसका डर और संदेह — क्या वह सच में किसी काम की थी? उसने पहले अपने खेत वाले पिल्ले के लिए पानी निकाला, फिर वृद्ध पड़ोसी की साइकिल ठीक की, और हर बार छड़ी हल्की-सी चमकती और गुनगुनाती। जब गाँव में एक दिन अकाल पड़ा और फसलें सूखने लगीं, चाँदनी ने सोचा कि उसे छड़ी का सही उपयोग करना चाहिए। उसने छड़ी से नदी के किनारे वाले पेड़ों की जड़ों तक पानी पहुँचाने का मार्ग खोजने की कोशिश की।
+
+छड़ी ने उसे संकेत दिए — छोटे-छोटे रास्ते, भूमिगत नालियों की ओर इशारा, और आखिरकार एक पुराना कुआँ आया जो वर्षों से बंद पड़ा था। चाँदनी ने गाँव वालों को बुलाया, सबके साथ मिलकर कुएँ की सफाई की और धीरे-धीरे पानी लौटा। प्रसन्न लोगों ने चाँदनी की तारीफ़ की, पर उसने हमेशा याद रखा कि असली जादू छड़ी में नहीं, गाँव के लोगों की मेहनत और एकता में था।
+
+समय के साथ चाँदनी ने जाना कि छड़ी सिर्फ़ संकेत देती है — काम करना और निभाना वही सच्ची जादू की कुंजी है। उसने अपनी पढ़ाई जारी रखी, गाँव के बच्चों को भी उस ज्ञान और दयालुता की शिक्षा दी। छड़ी आज भी कहीं सुरक्षित रखी है, पर वह छड़ी किसी भी अकेले व्यक्ति को अमीर नहीं बनाती; वह केवल दिलों में दया और एकता जगाने का माध्यम बनती है।` 
+      },
+
+      {
+        title: "प्रेरक कथा: दीपक की लौ",
+        category: "motivational",
+        content: `दीपक का परिवार छोटे से क़स्बे में रहता था। उसके पिता किसान थे और माँ घर सम्भालतीं। बचपन से ही दीपक में सीखने की तीव्र इच्छा थी, पर संसाधन बहुत कम थे। स्कूल में उसके पास अच्छे किताबें नहीं थीं, पर उसने शहर के पुस्तकालय में जाकर रात तक पढ़ाई की और अपने सपने को जिंदा रखा।
+
+एक सर्द रात जब स्कूल का रिजल्ट आया, दीपक का नाम सूची में नहीं था। उसके अंदर का जोश बुझने लगा, पर उसने हार मानने के बजाय कहा, "यह अंतिम नहीं है।" उसने हर दिन दो घंटे और पढ़ना शुरू किया, ट्यूशन के लिए बचत की और पुराने नोट्स को बार-बार पढ़ा। कई बार उसने खुद को कमजोर महसूस किया — दोस्तों का मज़ाक भी सहा, पर उसकी मेहनत और आत्म-विश्वास ने उसे आगे बढ़ाया।
+
+वर्षों की कोशिश के बाद, दीपक ने स्थानीय प्रतियोगिता में प्रथम स्थान प्राप्त किया और उसे राज्य स्तर पर प्रतियोगिता में भेजा गया। वहाँ उसने अपनी सादगी और लगन से जजों को प्रभावित किया और उसे स्कॉलरशिप मिली। इससे उसकी पढ़ाई के रोड खुले और दीपक ने इंजीनियर बनकर गाँव लौटकर अनेक तकनीकी समस्याओं का समाधान किया — पानी के वितरण से लेकर बिजली की बेहतर योजनाएँ।
+
+उसने सिखाया कि असली जीत केवल ट्रॉफी में नहीं, बल्कि लगातार उठने और फिर कोशिश करने की क्षमता में है। आज दीपक न सिर्फ़ अपने परिवार के लिए बल्कि पूरे क़स्बे के लिए प्रेरणा है — उसकी कहानी बताती है कि एक छोटी सी लौ कैसे पूरे अंधेरे को रोशन कर सकती है।` 
+      },
+
+      {
+        title: "रोमांटिक कथा: गुलाब और बारिश",
+        category: "romantic",
+        content: `नील और मीरा एक ही मोहल्ले में बड़े हुए थे। बचपन में दोनों अक्सर एक पेड़ के नीचे मिलते और अपनी-अपनी सादगी साझा करते। समय के साथ उनके रास्ते अलग हुए — नील बड़े शहर चला गया और मीरा गाँव में ही रहीं। कई सालों बाद, नील अचानक गाँव लौटा, कुछ थका हुआ और कुछ बदल गया सा महसूस कर रहा था।
+
+एक शाम अचानक भारी बारिश हुई और मीरा के घर के सामने का रास्ता बंद हो गया। नील ने देखा कि मीरा अपने छाते के बिना भीग रही है, वह तुरंत उसके पास गया और उसे अपने कोट में ढक लिया। पानी की बूँदों ने दोनों की यादों को तर कर दिया और उनकी पुरानी बातें फिर से जाग उठीं। बारिश और मिट्टी की खुशबू में, दोनों ने महसूस किया कि समय ने भले ही शरीर बदला हो पर महसूस वही रहा।
+
+नील ने मीरा से कहा कि उसने शहर में बहुत कुछ पाया पर उसकी ज़रूरतें तभी से शुरू हुईं जब मीरा उसे समझने लगी। मीरा ने भी अपने दिल की बात खोली — उसने बताया कि उसने नील को हमेशा ही सम्मान और दोस्ती की दृष्टि से देखा। वे दोनों समझ गए कि प्यार वह रिश्ता है जिसमें सुरक्षा, समझ और छोटे-छोटे कृत्यों की बहुत अहमियत होती है।
+
+वह बारिश की रात उनके रिश्ते की नई शुरुआत बन गई — नील ने गाँव में रहने और यहाँ के लोगों के साथ मिलकर कुछ समाजोपयोगी काम करने का फैसला किया। मीरा ने सब कुछ समझते हुए उसे साथ दिया। उनकी कहानी इस बात की मिसाल बनी कि प्रेम का मतलब केवल रोमांस नहीं बल्कि साथ चलना, एक-दूसरे के लिए जिम्मेदारी लेना और छोटी-छोटी खुशियों को संजोना भी है।` 
+      },
+
+      {
+        title: "लोककथा: नीलम का सफर",
+        category: "folk",
+        content: `नीलम एक साधारण मछुआरे की बेटी थी, पर उसके मन में दुनिया देखने की तीव्र चाहत थी। हर रोज़ जब वह समुद्र के किनारे मछलियों की गिनती करती, वह सोचती कि पानी के उस पार क्या है। गाँव के बुज़ुर्ग उसे चेताते कि बाहर की दुनिया कठोर है, पर नीलम अपनी जिज्ञासा से रुकने वाली नहीं थी।
+
+एक दिन उसने चुपके से एक छोटी नाव उधार ली और पहले प्रकाश के साथ एक छोटी यात्रा पर निकल पड़ी। समुद्र ने कई बार उसे हिलाया, पर उसकी हिम्मत न टूटी। रास्ते में उसे एक परित्यक्त द्वीप मिला जहाँ एक अकेला बूढ़ा मछुआरा रहता था। बूढ़े ने उसे सिखाया कि सागर की लहरें समझना और नाव को संभालना दोनों एक कला है।
+
+नीलम ने वहां कई महीनों तक रहकर समुद्री जीवन के रहस्य सीखे — ज्वार-भाटा, मौसम के संकेत और किन किन जगहों पर मछलियाँ अधिक मिलती हैं। उसने गाँव लौटकर अपनी नई विधियों से मछली पकड़ने के तरीके बदले और गाँव में खुशहाली लाई। लोग उसे अब केवल एक मछुआरे की बेटी नहीं, बल्कि समुद्र की बेटी मानने लगे। यह कहानी बताती है कि जोखिम और सीखने की इच्छा ही किसी सामान्य जीवन को असाधारण बना देती है।` 
+      },
+
+      {
+        title: "नैतिक कथा: सच की आवाज़",
+        category: "moral",
+        content: `रामू एक साधारण दुकानदार था जिसने हमेशा सच्चाई से काम किया। एक बार उसकी दुकान में कोई चोरी हो गई और पुलिस ने कई लोगों पर शक जताया। गाँव में अफ़वाहें फैलने लगीं और लोगों का भरोसा डगमगा गया। रामू ने देखा कि झूठ और अफ़वाहें कितना नुकसान करती हैं — रिश्ते टूटने लगे थे।
+
+रामू ने अपने सादा-सरल तरीकों से सत्य की खोज शुरू की। उसने धीरे-धीरे लोगों से बात की, चोर की आदतों का विश्लेषण किया और अंततः सच्चाई सामने लाई। गलतफहमी दूर हुई और जो रिश्ते टूट रहे थे, वे जुड़ने लगे। रामू की ईमानदारी ने लोगों के दिलों में फिर भरोसा पैदा किया। उसने सिखाया कि सच्चाई की आवाज़ भले ही धीमी हो पर वह अंततः सबसे दूर तक पहुँचती है।
+
+कई सालों बाद जब गाँव में कोई नई पीढ़ी बड़ी हुई, उन बच्चों को रामू की कहानी सुनाई जाती — यह कि सच्चाई और धैर्य ही समाज की असली नींव हैं।` 
+      }
+    ];
+
+    // UI populate
+    const listEl = document.getElementById('list');
+    const titleEl = document.getElementById('story-title');
+    const contentEl = document.getElementById('story-content');
+    const searchEl = document.getElementById('search');
+    const filterEl = document.getElementById('filter');
+    const voiceSelect = document.getElementById('voice');
+
+    let filtered = stories.slice();
+    let currentIndex = -1;
+
+    function renderList() {
+      listEl.innerHTML = '';
+      filtered.forEach((s, i) => {
+        const d = document.createElement('div');
+        d.className = 'story-item';
+        d.innerHTML = `<div class="title">${s.title}</div><div class="cat">${s.category}</div>`;
+        d.addEventListener('click', ()=> selectStory(i));
+        listEl.appendChild(d);
+      });
+    }
+
+    function selectStory(i){
+      currentIndex = i;
+      const s = filtered[i];
+      titleEl.textContent = s.title;
+      contentEl.textContent = s.content;
+      speakText(s.content);
+    }
+
+    // Search and filter
+    function applyFilters(){
+      const q = searchEl.value.trim().toLowerCase();
+      const cat = filterEl.value;
+      filtered = stories.filter(s => {
+        const matchesQ = !q || (s.title+ ' ' + s.content).toLowerCase().includes(q);
+        const matchesCat = (cat==='all') || s.category===cat;
+        return matchesQ && matchesCat;
+      });
+      renderList();
+    }
+
+    searchEl.addEventListener('input', applyFilters);
+    filterEl.addEventListener('change', applyFilters);
+
+    document.getElementById('shuffle').addEventListener('click', ()=>{
+      // simple shuffle
+      for(let i=filtered.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [filtered[i],filtered[j]] = [filtered[j],filtered[i]];
+      }
+      renderList();
+    });
+
+    // Speech Synthesis
+    const synth = window.speechSynthesis;
+    let utter = null;
+
+    function availableVoices(){
+      const v = synth.getVoices();
+      return v;
+    }
+
+    function populateVoices(){
+      voiceSelect.innerHTML = '';
+      const vs = availableVoices();
+      vs.forEach((v, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = `${v.name} ${v.lang}` + (v.default? ' (default)':'');
+        voiceSelect.appendChild(opt);
+      });
+      const hi = vs.findIndex(x => x.lang && x.lang.toLowerCase().startsWith('hi'));
+      if(hi>=0) voiceSelect.value = hi;
+    }
+
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = populateVoices;
+    }
+    populateVoices();
+
+    function speakText(text){
+      stopSpeaking();
+      if(!('speechSynthesis' in window)) return alert('आपके ब्राउज़र में Speech Synthesis समर्थित नहीं है।');
+      utter = new SpeechSynthesisUtterance(text);
+      const vs = availableVoices();
+      const sel = voiceSelect.value;
+      if(vs[sel]) utter.voice = vs[sel];
+      utter.lang = 'hi-IN';
+      utter.rate = parseFloat(document.getElementById('rate').value);
+      utter.pitch = parseFloat(document.getElementById('pitch').value);
+      utter.volume = parseFloat(document.getElementById('volume').value);
+      synth.speak(utter);
+    }
+
+    function stopSpeaking(){
+      if(synth.speaking) synth.cancel();
+      utter = null;
+    }
+
+    document.getElementById('play').addEventListener('click', ()=>{
+      if(currentIndex>=0) speakText(filtered[currentIndex].content);
+      else if(filtered.length>0) selectStory(0);
+    });
+    document.getElementById('pause').addEventListener('click', ()=>{ if(synth.speaking) synth.pause(); });
+    document.getElementById('resume').addEventListener('click', ()=>{ if(synth.paused) synth.resume(); });
+    document.getElementById('stop').addEventListener('click', ()=>{ stopSpeaking(); });
+    document.getElementById('stop-speech').addEventListener('click', ()=>{ stopSpeaking(); });
+
+    // download text
+    document.getElementById('download-text').addEventListener('click', ()=>{
+      if(currentIndex<0) return alert('पहले कोई कहानी चुनें।');
+      const s = filtered[currentIndex];
+      const blob = new Blob([s.title + 
+       + s.content], {type: 'text/plain;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = s.title.replace(/[^a-z0-9ऀ-ॿ]+/ig,'_') + '.txt';
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    // initial render
+    applyFilters();
+  </script>
+</body>
+</html>

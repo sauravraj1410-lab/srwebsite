@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Motivation 💫</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+
+    #quote {
+      font-size: 1.4rem;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 20px 30px;
+      border-radius: 15px;
+      color: #444;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      max-width: 500px;
+    }
+
+    button {
+      margin-top: 25px;
+      background-color: #fff;
+      color: #ff6f91;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #ff6f91;
+      color: #fff;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <h1>🌟 Daily Motivation 🌟</h1>
+  <div id="quote">Click the button to get inspired!</div>
+  <button onclick="generateQuote()">New Quote</button>
+
+  <script>
+    const quotes = [
+      "Believe you can and you’re halfway there. – Theodore Roosevelt",
+      "The harder you work for something, the greater you’ll feel when you achieve it.",
+      "Don’t watch the clock; do what it does. Keep going. – Sam Levenson",
+      "Success doesn’t come to you. You go to it. – Marva Collins",
+      "Great things never come from comfort zones.",
+      "Push yourself, because no one else is going to do it for you.",
+      "Dream it. Wish it. Do it.",
+      "Sometimes later becomes never. Do it now.",
+      "The key to success is to focus on goals, not obstacles."
+    ];
+
+    function generateQuote() {
+      const randomIndex = Math.floor(Math.random() * quotes.length);
+      document.getElementById("quote").innerText = quotes[randomIndex];
+    }
+  </script>
+</body>
+</html>

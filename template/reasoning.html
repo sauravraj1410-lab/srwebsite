@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <title>saurav games</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;                
+      padding: 0;
+      text-align: center;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      overflow: hidden;
+    }
+    #welcome, #info, #game, #end, #gameover {
+      display: none;
+      padding: 30px;
+    }
+    h1, h2 { margin-bottom: 20px; }
+    #welcome h1 { font-size: 32px; animation: fadeIn 2s ease-in-out forwards; }
+    @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+    .question { font-size: 20px; margin: 20px 0; }
+    input { padding: 10px; font-size: 16px; border-radius: 5px; border: none; margin-top:10px; width:90%; max-width:300px; }
+    button { padding: 10px 20px; font-size: 16px; border: none; border-radius: 8px; background: gold; color: black; margin-top:15px; cursor:pointer; transition:0.3s; width:80%; max-width:250px; }
+    button:hover { background: orange; }
+    #status { margin-top:15px; font-size:16px; }
+    .fireworks { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:-1; }
+    .life { color:red; font-size:20px; }
+  </style>
+</head>
+<body>
+  <!-- Welcome screen -->
+  <div id="welcome"><h1 id="welcomeText"></h1></div>
+  <!-- Info screen -->
+  <div id="info">
+    <h2>🎮 इस खेल में 20 तर्क क्षमता वाले स्तर हैं 🎮</h2>
+    <p>जैसे-जैसे आप आगे बढ़ेंगे, पहेलियाँ कठिन होती जाएँगी।<br>
+       आपके पास <b>3 जान</b> हैं और <b>30 सेकंड</b> हर प्रश्न के लिए।<br>
+       शुभकामनाएँ!</p>
+    <button onclick="startGame()">खेल शुरू करें</button>
+  </div>
+  <!-- Game screen -->
+  <div id="game">
+    <h2 id="levelTitle"></h2>
+    <div class="question" id="question"></div>
+    <input type="text" id="answer" placeholder="अपना उत्तर यहाँ लिखें">
+    <br>
+    <button onclick="checkAnswer()">सबमिट</button>
+    <p id="feedback"></p>
+    <div id="status"></div>
+  </div>
+  <!-- End screen -->
+  <div id="end">
+    <canvas class="fireworks"></canvas>
+    <h1>🎉 बधाई हो 🎉</h1>
+    <h2>आपने Sr  Quiz Game पूरा किया!</h2>
+    <p id="finalScore"></p>
+  </div>
+  <!-- Game Over screen -->
+  <div id="gameover">
+    <h1>💀 गेम ओवर 💀</h1>
+    <p>आप अपनी सभी जान खो चुके हैं!</p>
+    <button onclick="location.reload()">फिर से खेलें</button>
+  </div>
+
+<script>
+const questions = [
+  {q: "7 के बाद कौन सा अंक आता है?", a: "8"},
+  {q: "अगर आपके पास 12 आम हैं और आप 4 खा लेते हैं, तो कितने बचेंगे?", a: "8"},
+  {q: "शुक्रवार के बाद कौन सा दिन आता है?", a: "शनिवार"},
+  {q: "असमान: बिल्ली, कुत्ता, गाय, सेब", a: "सेब"},
+  {q: "श्रृंखला: 2, 4, 6, __, 10", a: "8"},
+  {q: "अगर A=1, B=2, Z=?", a: "26"},
+  {q: "राम > श्याम, श्याम > मोहन. सबसे छोटा कौन है?", a: "मोहन"},
+  {q: "अगला नंबर: 1, 4, 9, 16, __", a: "25"},
+  {q: "घड़ी 3:15 दिखा रही है, घंटे और मिनट के बीच कोण?", a: "7.5"},
+  {q: "12 बिल्ली 12 चूहे 12 मिनट में पकड़ती हैं. 60 चूहों के लिए 60 मिनट में कितनी बिल्लियाँ चाहिए?", a: "12"},
+  {q: "असमान: 2, 6, 12, 20, 30", a: "2"},
+  {q: "15 * 15 = ?", a: "225"},
+  {q: "अगर 2x = 14, x = ?", a: "7"},
+  {q: "पूर्व की विपरीत दिशा कौन सी है?", a: "पश्चिम"},
+  {q: "सुलझाएँ: 5 + 7 * 2 = ?", a: "19"},
+  {q: "खोया हुआ नंबर खोजें: 3, 6, 12, 24, __", a: "48"},
+  {q: "पहेली: मुझे खिलाओ तो मैं जीवित हूँ; पानी दो तो मैं मर जाऊँ। मैं कौन हूँ?", a: "आग"},
+  {q: "पहेली: इस खेल को किसने बनाया?", a: "सौरव"},
+  {q: "कठिन: अगर आज सोमवार है, 100 दिनों बाद कौन सा दिन होगा?", a: "बुधवार"},
+  {q: "सबसे कठिन: मेरे पास चाबियाँ हैं लेकिन ताले नहीं, जगह है लेकिन कमरा नहीं। मैं कौन हूँ?", a: "कीबोर्ड"}
+];
+
+let currentLevel=0, lives=3, score=0, timer, timeLeft=30;
+
+// Welcome typing effect
+const text = "✨ Sr First Quiz Game में आपका स्वागत है ✨";
+let i=0;
+function typeWriter() {
+  if(i<text.length) {
+    document.getElementById("welcomeText").innerHTML += text.charAt(i);
+    i++;
+    setTimeout(typeWriter,100);
+  }
+}
+
+window.onload = () => {
+  document.getElementById("welcome").style.display="block";
+  typeWriter();
+  setTimeout(()=>{
+    document.getElementById("welcome").style.display="none";
+    document.getElementById("info").style.display="block";
+  },4000);
+};
+
+function startGame() {
+  document.getElementById("info").style.display="none";
+  document.getElementById("game").style.display="block";
+  loadQuestion();
+}
+
+function loadQuestion() {
+  document.getElementById("feedback").innerHTML="";
+  document.getElementById("answer").value="";
+  timeLeft=30;
+  document.getElementById("levelTitle").innerText="Level "+(currentLevel+1);
+  document.getElementById("question").innerText=questions[currentLevel].q;
+  updateStatus();
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timer);
+  timer=setInterval(()=>{
+    timeLeft--;
+    updateStatus();
+    if(timeLeft<=0){
+      clearInterval(timer);
+      loseLife("⏳ समय समाप्त!");
+    }
+  },1000);
+}
+
+function updateStatus() {
+  document.getElementById("status").innerHTML=
+    "⏰ समय शेष: "+timeLeft+"s | ❤️ जीवन: "+lives+" | ⭐ अंक: "+score;
+}
+
+function checkAnswer() {
+  const ans=document.getElementById("answer").value.trim().toLowerCase();
+  if(ans===questions[currentLevel].a.toLowerCase()){
+    clearInterval(timer);
+    score+=10+timeLeft;
+    currentLevel++;
+    if(currentLevel<questions.length){ loadQuestion(); }
+    else{ endGame(); }
+  } else { loseLife("❌ गलत! पुनः प्रयास करें."); }
+}
+
+function loseLife(msg) {
+  lives--;
+  document.getElementById("feedback").innerText=msg;
+  if(lives<=0){
+    clearInterval(timer);
+    document.getElementById("game").style.display="none";
+    document.getElementById("gameover").style.display="block";
+  } else { loadQuestion(); }
+}
+
+function endGame() {
+  document.getElementById("game").style.display="none";
+  document.getElementById("end").style.display="block";
+  document.getElementById("finalScore").innerText="आपका अंतिम स्कोर: "+score;
+  fireworks();
+}
+
+// Fireworks effect
+function fireworks(){
+  const canvas=document.querySelector(".fireworks");
+  const ctx=canvas.getContext("2d");
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight;
+  function random(min,max){return Math.random()*(max-min)+min;}
+  class Firework{constructor(){this.x=random(0,canvas.width);this.y=canvas.height;this.targetY=random(100,canvas.height/2);this.size=2;this.speed=random(3,6);this.color=`hsl(${random(0,360)},100%,50%)`;this.exploded=false;this.particles=[];}update(){if(!this.exploded){this.y-=this.speed;if(this.y<=this.targetY){this.exploded=true;for(let i=0;i<50;i++){this.particles.push(new Particle(this.x,this.y,this.color));}}}else{this.particles.forEach(p=>p.update());}}draw(){if(!this.exploded){ctx.fillStyle=this.color;ctx.fillRect(this.x,this.y,this.size,this.size);}else{this.particles.forEach(p=>p.draw());}}}
+  class Particle{constructor(x,y,color){this.x=x;this.y=y;this.size=2;this.speedX=random(-3,3);this.speedY=random(-3,3);this.color=color;this.life=100;}update(){this.x+=this.speedX;this.y+=this.speedY;this.life--;}draw(){ctx.fillStyle=this.color;ctx.fillRect(this.x,this.y,this.size,this.size);}}
+  let fireworksArray=[];
+  function animate(){
+    ctx.fillStyle="rgba(0,0,0,0.2)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    if(Math.random()<0.05){fireworksArray.push(new Firework());}
+    fireworksArray.forEach((f,i)=>{f.update();f.draw();if(f.exploded && f.particles.every(p=>p.life<=0)){fireworksArray.splice(i,1);}});
+    requestAnimationFrame(animate);
+  }
+  animate();
+}
+</script>
+</body>
+</html>

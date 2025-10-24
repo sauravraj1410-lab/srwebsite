@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Gaming Hub — Sound & Fixes</title>
+<style>
+  :root{--accent:#00796b;--bg:#f5f5f5}
+  body{font-family:"Poppins",sans-serif;margin:0;background:var(--bg);color:#111}
+  header{padding:18px;text-align:center}
+  h1{margin:6px 0}
+  .games{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;padding:18px}
+  .card{width:150px;background:#fff;border-radius:12px;padding:12px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,0.08);cursor:pointer;transition:transform .18s}
+  .card:hover{transform:scale(1.05)}
+  .card img{width:200px;height:100px;border-radius:10px;object-fit:cover}
+  .card h3{font-size:1rem;margin:8px 0}
+  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;justify-content:center;align-items:center;padding:20px}
+  .modal.active{display:flex}
+  .modal-box{background:#fff;border-radius:12px;padding:16px;max-width:900px;width:100%;position:relative;box-shadow:0 10px 40px rgba(0,0,0,0.2)}
+  .modal .close{position:absolute;right:14px;top:8px;font-size:24px;cursor:pointer}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  button{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+  button.secondary{background:#555}
+  .center{text-align:center}
+  canvas{display:block;margin:12px auto;border-radius:8px;background:#000}
+  .info{font-size:0.95rem;color:#333;margin-top:6px}
+  @media (max-width:520px){ .card{width:135px} .modal-box{padding:12px} canvas{max-width:100%} }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎮 Advanced Mini Gaming Hub (with Sound)</h1>
+  <p class="info">Click any game. Replace card images by editing the <code>src</code> in each &lt;img&gt;.</p>
+</header>
+
+<section class="games" id="gamesList">
+  <!-- Replace the src with your icons -->
+  <div class="card" onclick="openGame('snake')">
+    <img src="static/snake.jpg" alt="Snake Icon">
+    <h3>Snake</h3>
+  </div>
+
+  <div class="card" onclick="openGame('flappy')">
+    <img src="static/flappybird.jpg" alt="Flappy Icon">
+    <h3>Flappy Bird</h3>
+  </div>
+
+  <div class="card" onclick="openGame('whack')">
+    <img src="static/whack.jpg" alt="Whack Icon">
+    <h3>Whack-a-Mole</h3>
+  </div>
+
+  <div class="card" onclick="openGame('tictac')">
+    <img src="static/tictactoe.jpg" alt="TicTac Icon">
+    <h3>Tic Tac Toe (AI)</h3>
+  </div>
+
+  <div class="card" onclick="openGame('memory')">
+    <img src="static/memory.jpg" alt="Memory Icon">
+    <h3>Memory Pairs</h3>
+  </div>
+
+  <div class="card" onclick="openGame('hardmath')">
+    <img src="static/math.png" alt="Math Icon">
+    <h3>Easy Math (Deep)</h3>
+  </div>
+</section>
+
+<!-- Modal -->
+<div class="modal" id="modal">
+  <div class="modal-box" id="modalBox">
+    <span class="close" onclick="closeGame()">×</span>
+    <div id="modalInner"></div>
+  </div>
+</div>
+
+<script>
+/* ====== AUDIO (WebAudio generated tones) ====== */
+const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioContextClass();
+
+function playTone(freq=440, duration=0.12, type='sine', vol=0.06){
+  // create quick beep
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type;
+  o.frequency.value = freq;
+  g.gain.value = vol;
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start();
+  g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+  setTimeout(()=> { try{ o.stop(); }catch(e){} }, duration*1000 + 30);
+}
+
+/* play short sample patterns for different events */
+function soundFlap(){ playTone(900,0.08,'sine',0.04); }
+function soundScore(){ playTone(1200,0.14,'triangle',0.06); playTone(1500,0.08,'sine',0.04); }
+function soundHit(){ playTone(300,0.12,'sawtooth',0.06); }
+function soundEat(){ playTone(800,0.12,'triangle',0.06); }
+function soundGameOver(){ playTone(200,0.35,'sine',0.09); playTone(120,0.35,'sine',0.06); }
+function soundWin(){ playTone(1400,0.12,'triangle',0.06); playTone(1600,0.12,'sine',0.05); }
+function soundMatch(){ playTone(1000,0.12,'triangle',0.06); }
+function soundCorrect(){ playTone(1100,0.12,'triangle',0.06); }
+function soundWrong(){ playTone(250,0.14,'sawtooth',0.06); }
+
+/* ====== GLOBAL CLEANUP & MODAL SCROLL LOCK ====== */
+let cleanupCurrent = null;
+let prevOverflow = null;
+function setCleanup(fn){
+  cleanupCurrent = () => {
+    try{ if(fn) fn(); } catch(e){ console.warn(e); }
+    document.body.style.overflow = prevOverflow || '';
+  };
+}
+function runCleanup(){
+  if(cleanupCurrent) { cleanupCurrent(); cleanupCurrent = null; prevOverflow=null; }
+}
+
+/* open/close modal */
+const modal = document.getElementById('modal');
+const modalInner = document.getElementById('modalInner');
+
+function openGame(name){
+  // ensure audio context resumed on user gesture
+  if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
+  runCleanup();
+  prevOverflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden'; // lock background scroll
+  modal.classList.add('active');
+  modalInner.innerHTML = '';
+  if(name==='snake') loadSnake();
+  if(name==='flappy') loadFlappy();
+  if(name==='whack') loadWhack();
+  if(name==='tictac') loadTicTacToe();
+  if(name==='memory') loadMemory();
+  if(name==='hardmath') loadHardMath();
+}
+function closeGame(){ runCleanup(); modal.classList.remove('active'); modalInner.innerHTML=''; }
+
+/* close when clicking outside */
+modal.addEventListener('click', (e)=>{ if(e.target===modal) closeGame(); });
+
+/* ---------------- SNAKE (score & restart) ---------------- */
+function loadSnake(){
+  modalInner.innerHTML = `
+    <div class="center">
+      <h2>Snake</h2>
+      <div>Score: <span id="snakeScore">0</span></div>
+      <canvas id="snakeCanvas" width="400" height="400"></canvas>
+      <div class="controls">
+        <button id="snakeStart">Start</button>
+        <button id="snakeRestart" class="secondary">Restart</button>
+        <button onclick="closeGame()" class="secondary">Close</button>
+      </div>
+      <p class="info">Arrow keys to move. Eats increase score. Restart resets score.</p>
+    </div>
+  `;
+  const canvas = document.getElementById('snakeCanvas');
+  const ctx = canvas.getContext('2d');
+  const scale = 20, cols=canvas.width/scale, rows=canvas.height/scale;
+  let snake=[], dir, food, interval=null, speed=140, speedTimer=null;
+  function reset(){
+    snake = [{x: Math.floor(cols/2), y: Math.floor(rows/2)}];
+    dir = {x:1,y:0}; placeFood(); speed=140;
+    document.getElementById('snakeScore').innerText = 0;
+  }
+  function placeFood(){ food = {x: Math.floor(Math.random()*cols), y: Math.floor(Math.random()*rows)}; }
+  function draw(){
+    ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = 'red'; ctx.fillRect(food.x*scale, food.y*scale, scale, scale);
+    ctx.fillStyle = 'lime'; snake.forEach(s=> ctx.fillRect(s.x*scale, s.y*scale, scale, scale));
+  }
+  function step(){
+    const head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
+    if(head.x<0 || head.x>=cols || head.y<0 || head.y>=rows){ gameOver(); return; }
+    if(snake.some((s,i)=>i>0 && s.x===head.x && s.y===head.y)){ gameOver(); return; }
+    snake.unshift(head);
+    if(head.x===food.x && head.y===food.y){
+      // eaten
+      const scEl = document.getElementById('snakeScore');
+      scEl.innerText = Number(scEl.innerText) + 1;
+      soundEat();
+      if(speed>50) speed -= 5;
+      placeFood();
+    } else snake.pop();
+    draw();
+  }
+  function start(){
+    if(interval) clearInterval(interval);
+    interval = setInterval(step, speed);
+    speedTimer = setInterval(()=>{ if(interval){ clearInterval(interval); interval=setInterval(step, speed); } }, 300);
+  }
+  function stop(){ if(interval){ clearInterval(interval); interval=null; } if(speedTimer){ clearInterval(speedTimer); speedTimer=null; } }
+  function gameOver(){ stop(); ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle='white'; ctx.textAlign='center'; ctx.font='24px sans-serif'; ctx.fillText('Game Over', canvas.width/2, canvas.height/2 - 10); ctx.font='16px sans-serif'; ctx.fillText('Score: '+document.getElementById('snakeScore').innerText, canvas.width/2, canvas.height/2 + 18); soundGameOver(); }
+  function onKey(e){
+    if(e.key === 'ArrowUp' && dir.y!==1){ dir={x:0,y:-1}; e.preventDefault(); }
+    if(e.key === 'ArrowDown' && dir.y!==-1){ dir={x:0,y:1}; e.preventDefault(); }
+    if(e.key === 'ArrowLeft' && dir.x!==1){ dir={x:-1,y:0}; e.preventDefault(); }
+    if(e.key === 'ArrowRight' && dir.x!==-1){ dir={x:1,y:0}; e.preventDefault(); }
+  }
+  reset(); draw();
+  document.getElementById('snakeStart').onclick = ()=>{ reset(); draw(); start(); };
+  document.getElementById('snakeRestart').onclick = ()=>{ stop(); reset(); draw(); start(); };
+  window.addEventListener('keydown', onKey);
+  setCleanup(()=>{ stop(); window.removeEventListener('keydown', onKey); });
+}
+
+/* --------------- FLAPPY BIRD (score, gap fix, no page jump) --------------- */
+function loadFlappy(){
+  modalInner.innerHTML = `
+    <div class="center">
+      <h2>Flappy Bird</h2>
+      <div>Score: <span id="flappyScore">0</span></div>
+      <canvas id="flappyCanvas" width="420" height="420"></canvas>
+      <div class="controls">
+        <button id="flappyStart">Start</button>
+        <button id="flappyRestart" class="secondary">Restart</button>
+        <button onclick="closeGame()" class="secondary">Close</button>
+      </div>
+      <p class="info">Press Space (or click/tap) to flap. Score increments when you pass a pipe.</p>
+    </div>
+  `;
+  const canvas = document.getElementById('flappyCanvas');
+  const ctx = canvas.getContext('2d');
+  let bird, pipes, gravity, interval=null, keyHandler=null, clickHandler=null, score=0, gap=130;
+  function reset(){
+    bird = {x:60, y:canvas.height/2, vel:0, w:24, h:18};
+    pipes = []; score = 0; document.getElementById('flappyScore').innerText = score;
+  }
+  function spawnPipe(){
+    // ensure full pipe fits and gap is maintained; top between 20 and (height - gap - 20)
+    const top = Math.floor(Math.random()*(canvas.height - gap - 60)) + 30;
+    pipes.push({x: canvas.width, top: top, width: 44, passed:false});
+  }
+  function draw(){
+    ctx.fillStyle = '#87CEEB'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    // bird
+    ctx.fillStyle = 'yellow'; ctx.fillRect(bird.x, bird.y, bird.w, bird.h);
+    // pipes
+    pipes.forEach(pipe=>{
+      ctx.fillStyle = 'green';
+      ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
+      ctx.fillRect(pipe.x, pipe.top + gap, pipe.width, canvas.height - (pipe.top + gap));
+    });
+    ctx.fillStyle='black'; ctx.font='16px sans-serif'; ctx.fillText('Score: '+score, 10, 20);
+  }
+  function step(){
+    bird.vel += gravity; bird.y += bird.vel;
+    // spawn pipes
+    if(pipes.length===0 || pipes[pipes.length-1].x < canvas.width - 160) spawnPipe();
+    // move pipes and check collisions + scoring
+    pipes.forEach(pipe=>{
+      pipe.x -= 3;
+      // scoring when bird fully passes right edge of pipe
+      if(!pipe.passed && (bird.x > pipe.x + pipe.width)){
+        pipe.passed = true; score++; document.getElementById('flappyScore').innerText = score; soundScore();
+      }
+      // collision area check (rectangle overlap)
+      if(bird.x < pipe.x + pipe.width && bird.x + bird.w > pipe.x){
+        if(bird.y < pipe.top || bird.y + bird.h > pipe.top + gap){
+          gameOver();
+        }
+      }
+    });
+    // ground/ceiling
+    if(bird.y < 0 || bird.y + bird.h > canvas.height) gameOver();
+    draw();
+  }
+  function flap(){ bird.vel = -10; soundFlap(); }
+  function start(){
+    if(interval) clearInterval(interval);
+    reset(); spawnPipe(); spawnPipe();
+    gravity = 0.6;
+    // input handlers with preventDefault to avoid page jump
+    keyHandler = function(e){ if(e.code === 'Space'){ e.preventDefault(); flap(); } };
+    clickHandler = function(){ flap(); };
+    window.addEventListener('keydown', keyHandler, {passive:false});
+    canvas.addEventListener('click', clickHandler);
+    interval = setInterval(step, 20);
+  }
+  function stop(){
+    if(interval){ clearInterval(interval); interval = null; }
+    if(keyHandler) { try{ window.removeEventListener('keydown', keyHandler); }catch(e){} keyHandler=null; }
+    if(clickHandler) { try{ canvas.removeEventListener('click', clickHandler); }catch(e){} clickHandler=null; }
+  }
+  function gameOver(){
+    stop();
+    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = 'white'; ctx.textAlign = 'center'; ctx.font = '24px sans-serif'; ctx.fillText('Game Over', canvas.width/2, canvas.height/2 - 10);
+    ctx.font = '18px sans-serif'; ctx.fillText('Score: '+score, canvas.width/2, canvas.height/2 + 18);
+    soundGameOver();
+  }
+  document.getElementById('flappyStart').onclick = ()=>{ start(); };
+  document.getElementById('flappyRestart').onclick = ()=>{ stop(); start(); };
+  setCleanup(()=>{ stop(); });
+}
+
+/* ---------------- WHACK-A-MOLE (sound on hit) ---------------- */
+function loadWhack(){
+  modalInner.innerHTML = `
+    <div class="center">
+      <h2>Whack-a-Mole</h2>
+      <div>Score: <span id="whackScore">0</span></div>
+      <div id="whackArea" style="display:grid;grid-template-columns:repeat(3,110px);gap:10px;justify-content:center;margin-top:12px;"></div>
+      <div class="controls">
+        <button id="whackStart">Start</button>
+        <button id="whackRestart" class="secondary">Restart</button>
+        <button onclick="closeGame()" class="secondary">Close</button>
+      </div>
+      <p class="info">Click the green mole squares quickly to get points.</p>
+    </div>
+  `;
+  const area = document.getElementById('whackArea');
+  area.innerHTML = '';
+  for(let i=0;i<9;i++){
+    const d = document.createElement('div');
+    d.style.width='110px'; d.style.height='90px'; d.style.background='#ddd'; d.style.borderRadius='10px'; d.id='whack'+i;
+    area.appendChild(d);
+  }
+  let score=0, moleInterval=null;
+  function showMole(){
+    area.querySelectorAll('div').forEach(b=>{ b.style.background='#ddd'; b.onclick=null; });
+    const idx = Math.floor(Math.random()*9);
+    const mole = document.getElementById('whack'+idx);
+    mole.style.background='green';
+    mole.onclick = ()=>{ score++; document.getElementById('whackScore').innerText = score; mole.style.background='#ddd'; mole.onclick=null; soundHit(); };
+  }
+  function start(){ score=0; document.getElementById('whackScore').innerText=0; if(moleInterval) clearInterval(moleInterval); moleInterval=setInterval(showMole, 700); }
+  function stop(){ if(moleInterval){ clearInterval(moleInterval); moleInterval=null;} area.querySelectorAll('div').forEach(b=>{ b.style.background='#ddd'; b.onclick=null; }); }
+  document.getElementById('whackStart').onclick=start;
+  document.getElementById('whackRestart').onclick = ()=>{ stop(); start(); };
+  setCleanup(()=>{ stop(); });
+}
+
+/* ------------- TIC TAC TOE (Minimax AI) with sounds and scoreboard ------------- */
+function loadTicTacToe(){
+  modalInner.innerHTML = `
+    <div class="center">
+      <h2>Tic Tac Toe (You vs Computer)</h2>
+      <div style="margin-top:8px">Scoreboard — You: <span id="ttPlayerScore">0</span> | Computer: <span id="ttComputerScore">0</span></div>
+      <div id="ttBoard" style="display:grid;grid-template-columns:repeat(3,90px);gap:6px;justify-content:center;margin:12px auto;"></div>
+      <div class="controls">
+        <button id="ttStart">Start</button>
+        <button id="ttRestart" class="secondary">Restart</button>
+        <button onclick="closeGame()" class="secondary">Close</button>
+      </div>
+      <p class="info">You are X. Computer is O (optimal Minimax).</p>
+      <p id="ttResult" style="font-weight:700;margin-top:8px"></p>
+    </div>
+  `;
+  const boardEl = document.getElementById('ttBoard'), resultEl = document.getElementById('ttResult');
+  let board = Array(9).fill(''), player='X', ai='O';
+  let pScore = Number(localStorage.getItem('ttPlayer')||0), aiScore = Number(localStorage.getItem('ttAi')||0);
+  document.getElementById('ttPlayerScore').innerText = pScore; document.getElementById('ttComputerScore').innerText = aiScore;
+  let currentTurn='player';
+  function render(){
+    boardEl.innerHTML=''; board.forEach((v,i)=>{
+      const cell = document.createElement('div');
+      cell.style.width='90px'; cell.style.height='90px'; cell.style.background='#eee'; cell.style.display='flex';
+      cell.style.alignItems='center'; cell.style.justifyContent='center'; cell.style.fontSize='2rem'; cell.style.cursor = v ? 'default' : 'pointer';
+      cell.innerText = v;
+      cell.onclick = ()=>{ if(!v && !checkWinner(board) && currentTurn==='player'){ board[i]=player; currentTurn='ai'; update(); } };
+      boardEl.appendChild(cell);
+    });
+  }
+  function checkWinner(b){
+    const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    for(const w of wins) if(b[w[0]] && b[w[0]]===b[w[1]] && b[w[1]]===b[w[2]]) return b[w[0]];
+    if(b.every(c=>c)) return 'tie';
+    return null;
+  }
+  function minimax(newBoard, turn){
+    const winner = checkWinner(newBoard);
+    if(winner === ai) return {score:10};
+    if(winner === player) return {score:-10};
+    if(winner === 'tie') return {score:0};
+    const moves=[];
+    for(let i=0;i<9;i++){
+      if(newBoard[i]===''){
+        const move={index:i};
+        newBoard[i]=turn;
+        const res = minimax(newBoard, turn===ai?player:ai);
+        move.score = res.score;
+        newBoard[i]='';
+        moves.push(move);
+      }
+    }
+    let best;
+    if(turn===ai){ let bestScore=-Infinity; moves.forEach(m=>{ if(m.score>bestScore){ bestScore=m.score; best=m; }}); }
+    else { let bestScore=Infinity; moves.forEach(m=>{ if(m.score<bestScore){ bestScore=m.score; best=m; }}); }
+    return best;
+  }
+  function aiMove(){
+    const mv = minimax(board.slice(), ai);
+    if(mv && board[mv.index]==='') board[mv.index]=ai;
+    currentTurn='player'; update();
+  }
+  function update(){
+    render();
+    const win = checkWinner(board);
+    if(win){
+      if(win === player){ resultEl.innerText='You win!'; pScore++; localStorage.setItem('ttPlayer', pScore); document.getElementById('ttPlayerScore').innerText=pScore; soundWin(); }
+      else if(win === ai){ resultEl.innerText='Computer wins!'; aiScore++; localStorage.setItem('ttAi', aiScore); document.getElementById('ttComputerScore').innerText=aiScore; soundGameOver(); }
+      else { resultEl.innerText = "It's a tie!"; }
+      currentTurn = null; return;
+    }
+    if(currentTurn === 'ai') setTimeout(aiMove, 300);
+  }
+  document.getElementById('ttStart').onclick = ()=>{ board=Array(9).fill(''); currentTurn='player'; resultEl.innerText=''; render(); };
+  document.getElementById('ttRestart').onclick = ()=>{ board=Array(9).fill(''); currentTurn='player'; resultEl.innerText=''; render(); };
+  render();
+  setCleanup(()=>{ /* nothing heavy to cleanup */ });
+}
+
+/* ---------------- MEMORY PAIRS (sound on match) ---------------- */
+function loadMemory(){
+  modalInner.innerHTML = `
+    <div class="center">
+      <h2>Memory Pairs</h2>
+      <div id="memoryScore">Pairs found: 0</div>
+      <div id="memoryArea" style="display:grid;grid-template-columns:repeat(4,80px);gap:8px;justify-content:center;margin-top:12px;"></div>
+      <div class="controls">
+        <button id="memoryStart">Start</button>
+        <button id="memoryRestart" class="secondary">Restart</button>
+        <button onclick="closeGame()" class="secondary">Close</button>
+      </div>
+      <p class="info">Flip two cards to find matching pairs.</p>
+    </div>
+  `;
+  const area = document.getElementById('memoryArea');
+  let first=null, second=null, pairs=0, lock=false;
+  function start(){
+    area.innerHTML=''; pairs=0; document.getElementById('memoryScore').innerText='Pairs found: 0';
+    const colors = ['red','green','blue','yellow','purple','orange','pink','cyan'];
+    const cards = colors.concat(colors).sort(()=>Math.random()-0.5);
+    cards.forEach((c,i)=>{
+      const d = document.createElement('div');
+      d.style.width='80px'; d.style.height='80px'; d.style.borderRadius='10px'; d.style.background='gray'; d.dataset.color=c;
+      d.onclick = ()=>{
+        if(lock || d===first || d===second) return;
+        d.style.background = c;
+        if(!first) first = d;
+        else if(!second){ second = d; if(first.dataset.color === second.dataset.color){ pairs++; soundMatch(); document.getElementById('memoryScore').innerText='Pairs found: '+pairs; first.onclick=null; second.onclick=null; first=null; second=null; } else { lock=true; setTimeout(()=>{ first.style.background='gray'; second.style.background='gray'; first=null; second=null; lock=false; },700); } }
+      };
+      area.appendChild(d);
+    });
+  }
+  document.getElementById('memoryStart').onclick = start;
+  document.getElementById('memoryRestart').onclick = ()=>{ start(); };
+  setCleanup(()=>{ /* nothing heavy */ });
+}
+
+/* ---------------- HARD MATH (sound + restart) ---------------- */
+function loadHardMath(){
+  modalInner.innerHTML = `
+    <div class="center">
+      <h2>Hard Math (Deep)</h2>
+      <div>Score: <span id="mathScore">0</span></div>
+      <div id="mathQuestion" style="margin:12px 0;font-weight:700"></div>
+      <input id="mathAnswer" type="text" placeholder="Type answer" style="padding:8px;border-radius:6px;border:1px solid #ccc">
+      <div class="controls">
+        <button id="mathSubmit">Submit</button>
+        <button id="mathSkip" class="secondary">Skip</button>
+        <button id="mathRestart" class="secondary">Restart</button>
+        <button onclick="closeGame()" class="secondary">Close</button>
+      </div>
+      <div style="margin-top:8px">Time left: <span id="mathTimer">20</span>s</div>
+      <p class="info">Expressions adapt difficulty. Only integer results appear.</p>
+      <div id="mathFeedback" style="margin-top:8px;font-weight:700"></div>
+    </div>
+  `;
+  let score=0, timeLeft=20, timerInterval=null, currentAnswer=null;
+  function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  function generateExpression(level){
+    if(level===1){ const a=rand(2,9), b=rand(2,9), c=rand(1,15); return {expr:`${a}*${b} + ${c}`, value: a*b + c}; }
+    if(level===2){ const a=rand(2,12), b=rand(2,8), c=rand(1,10), d=rand(1,6); return {expr:`(${a}*${b}) - (${c}*${d})`, value: a*b - c*d}; }
+    if(level===3){ const a=rand(2,12), b=rand(2,12), c=rand(2,8); let prod=a*b; if(prod % c !== 0) prod += (c - (prod % c)); return {expr:`(${prod}) / ${c} + ${rand(1,10)}`, value: (prod/c) + rand(1,10)}; }
+    // level 4
+    const a=rand(2,9), b=rand(2,9), c=rand(2,9), d=rand(1,8), e=rand(1,6); const left=a*b; const div = Math.max(1, Math.floor(left/d)); return {expr:`(${a}*${b}) / ${d} + (${c}*${e})`, value: Math.floor(left/d) + c*e};
+  }
+  function newQuestion(){
+    const level = score < 3 ? 1 : (score < 6 ? 2 : (score < 12 ? 3 : 4));
+    const q = generateExpression(level);
+    currentAnswer = q.value;
+    document.getElementById('mathQuestion').innerText = q.expr;
+    document.getElementById('mathAnswer').value = '';
+    document.getElementById('mathFeedback').innerText = '';
+    timeLeft = Math.max(8, 20 - Math.floor(score/2));
+    document.getElementById('mathTimer').innerText = timeLeft;
+    startTimer();
+  }
+  function startTimer(){ if(timerInterval) clearInterval(timerInterval); timerInterval = setInterval(()=>{ timeLeft--; document.getElementById('mathTimer').innerText = timeLeft; if(timeLeft<=0){ clearInterval(timerInterval); document.getElementById('mathFeedback').innerText = 'Time up! Correct: ' + currentAnswer; soundWrong(); setTimeout(()=> newQuestion(),1200); } },1000); }
+  function submitAnswer(){
+    clearInterval(timerInterval);
+    const input = document.getElementById('mathAnswer').value.trim();
+    const val = Number(input);
+    if(input === '' || !Number.isFinite(val)){ document.getElementById('mathFeedback').innerText = 'Invalid'; soundWrong(); setTimeout(()=> newQuestion(),800); return; }
+    if(Math.round(val) === Math.round(currentAnswer)){ score++; document.getElementById('mathScore').innerText = score; document.getElementById('mathFeedback').innerText='Correct!'; soundCorrect(); setTimeout(()=> newQuestion(),700); }
+    else { document.getElementById('mathFeedback').innerText = 'Wrong! Correct: ' + currentAnswer; soundWrong(); setTimeout(()=> newQuestion(),900); }
+  }
+  function start(){ score=0; document.getElementById('mathScore').innerText=0; newQuestion(); }
+  function stop(){ if(timerInterval) clearInterval(timerInterval); timerInterval=null; }
+  document.getElementById('mathSubmit').onclick = submitAnswer;
+  document.getElementById('mathSkip').onclick = ()=>{ clearInterval(timerInterval); newQuestion(); };
+  document.getElementById('mathRestart').onclick = ()=>{ stop(); start(); };
+  function enterHandler(e){ if(e.key === 'Enter'){ e.preventDefault(); submitAnswer(); } }
+  document.getElementById('mathAnswer').addEventListener('keydown', enterHandler);
+  setCleanup(()=>{ stop(); document.getElementById('mathAnswer')?.removeEventListener('keydown', enterHandler); });
+  start();
+}
+
+/* cleanup on page unload */
+window.addEventListener('beforeunload', ()=>{ runCleanup(); });
+</script>
+</body>
+</html>
+
