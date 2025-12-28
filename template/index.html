@@ -1,461 +1,273 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My Starter Website</title>
-  <style>
-    :root {
-      --bg-color: #ffffff;
-      --text-color: #222;
-      --accent-color: #007bff;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SR Website</title>
 
-    body.dark {
-      --bg-color: #1a1a1a;
-      --text-color: #f0f0f0;
-      --accent-color: #00bcd4;
-    }
+<style>
+:root {
+  --bg-color: #ffffff;
+  --text-color: #222;
+  --accent-color: #007bff;
+}
 
-    body.red {
-      --bg-color: #fff5f5;
-      --text-color: #330000;
-      --accent-color: #e53935;
-    }
+body.dark {
+  --bg-color: #121212;
+  --text-color: #f1f1f1;
+  --accent-color: #00bcd4;
+}
 
-    body {
-      font-family: "Poppins", sans-serif;
-      background: var(--bg-color);
-      color: var(--text-color);
-      transition: background 0.3s, color 0.3s;
-      margin: 0;
-    }
+body.red {
+  --bg-color: #fff5f5;
+  --text-color: #330000;
+  --accent-color: #e53935;
+}
 
-    /* Navbar */
-    nav {
-      background: var(--accent-color);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 20px;
-      color: #fff;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  background: var(--bg-color);
+  color: var(--text-color);
+  transition: 0.3s;
+}
 
-    nav .logo {
-      font-size: 1.4rem;
-      font-weight: bold;
-      cursor: pointer;
-    }
+/* ===== NAVBAR ===== */
+nav {
+  background: var(--accent-color);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: white;
+}
 
-    .nav-links, .right-section {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
+/* Logo */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.7rem;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 1px;
+}
 
-    .nav-links a {
-      color: white;
-      text-decoration: none;
-      font-size: 1rem;
-      transition: 0.3s;
-    }
+.logo-icon {
+  background: rgba(255,255,255,0.25);
+  padding: 6px 10px;
+  border-radius: 10px;
+}
 
-    .nav-links a:hover {
-      text-decoration: underline;
-    }
+.logo:hover { opacity: 0.9; }
 
-    /* Dropdown */
-    .dropdown {
-      position: relative;
-    }
+/* Nav Links */
+.nav-links {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
 
-    .dropbtn {
-      padding: 0.5em 1em;
-      font-size: 1rem;
-      cursor: pointer;
-      user-select: none;
-      background: none;
-      border: none;
-      color: white;
-    }
+.nav-links a {
+  color: white;
+  text-decoration: none;
+}
 
-    .dropdown-content {
-      display: none;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      background: var(--bg-color);
-      color: var(--text-color);
-      border-radius: 8px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      min-width: 150px;
-      z-index: 10;
-    }
+.nav-links a:hover {
+  text-decoration: underline;
+}
 
-    .dropdown-content a {
-      display: block;
-      padding: 10px;
-      text-decoration: none;
-      color: var(--text-color);
-    }
+/* Dropdown */
+.dropdown {
+  position: relative;
+}
 
-    .dropdown-content a:hover {
-      background: var(--accent-color);
-      color: #fff;
-    }
+.dropbtn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
 
-    .dropdown:hover .dropdown-content {
-      display: block;
-    }
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background: var(--bg-color);
+  color: var(--text-color);
+  min-width: 160px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  z-index: 10;
+}
 
-    /* Theme buttons */
-    .theme-buttons {
-      display: flex;
-      gap: 8px;
-    }
+.dropdown-content a {
+  display: block;
+  padding: 10px;
+  color: var(--text-color);
+  text-decoration: none;
+}
 
-    .theme-btn {
-      width: 25px;
-      height: 25px;
-      border-radius: 50%;
-      border: 2px solid #fff;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
+.dropdown-content a:hover {
+  background: var(--accent-color);
+  color: white;
+}
 
-    .theme-btn:hover { transform: scale(1.2); }
+.dropdown:hover .dropdown-content {
+  display: block;
+}
 
-    .red-btn { background: #e53935; }
-    .dark-btn { background: #1a1a1a; }
-    .white-btn { background: #fff; border: 2px solid #ddd; }
+/* Right Section */
+.right-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-    .profile-icon {
-      width: 35px;
-      height: 35px;
-      border-radius: 50%;
-      border: 2px solid #fff;
-      cursor: pointer;
-      object-fit: cover;
-      transition: transform 0.3s ease;
-    }
+.theme-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+}
 
-    .profile-icon:hover { transform: scale(1.1); }
+.red-btn { background: #e53935; }
+.dark-btn { background: #121212; }
+.white-btn { background: white; border-color: #ccc; }
 
-    /* Main content sections */
-    .section {
-      padding: 60px 20px;
-      max-width: 1000px;
-      margin: auto;
-    }
+/* Sections */
+.section {
+  max-width: 1000px;
+  margin: auto;
+  padding: 60px 20px;
+}
 
-    .section h2 {
-      color: var(--accent-color);
-      margin-bottom: 20px;
-    }
+.section h2 {
+  color: var(--accent-color);
+}
 
-    .section img {
-      max-width: 100%;
-      border-radius: 12px;
-      margin-bottom: 20px;
-    }
+.features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
 
-    .features {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: center;
-    }
+.feature-card {
+  flex: 1 1 220px;
+  background: #f1f1f1;
+  color: #222;
+  padding: 20px;
+  border-radius: 12px;
+}
 
-    .feature-card {
-      flex: 1 1 250px;
-      background: #f0f0f0;
-      padding: 20px;
-      border-radius: 12px;
-      color: #222;
-      transition: transform 0.3s;
-    }
+.feature-card:hover {
+  transform: translateY(-5px);
+  transition: 0.3s;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
 
-    .feature-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-    }
+/* Bot Button */
+#bot-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  background: var(--accent-color);
+  color: white;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+}
 
-    @media(max-width:700px){
-      .nav-links, .right-section { flex-direction: column; gap: 10px; }
-      .features { flex-direction: column; }
-    }
+#bot-btn:hover {
+  transform: scale(1.1);
+}
 
-    /* Chatbot Button */
-    #chatbot-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--accent-color);
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      font-size: 28px;
-      cursor: pointer;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      transition: transform 0.2s;
-      z-index: 999;
-    }
-    #chatbot-btn:hover { transform: scale(1.1); }
-
-    /* Chat Window */
-    #chat-window {
-      display: none;
-      position: fixed;
-      bottom: 90px;
-      right: 20px;
-      width: 320px;
-      height: 420px;
-      background: var(--bg-color);
-      border: 2px solid var(--accent-color);
-      border-radius: 15px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-      flex-direction: column;
-      overflow: hidden;
-      z-index: 999;
-    }
-
-    #chat-header {
-      background: var(--accent-color);
-      color: white;
-      padding: 10px;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    #chat-messages {
-      flex: 1;
-      padding: 10px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      height: calc(100% - 100px);
-    }
-
-    .msg {
-      padding: 8px 12px;
-      border-radius: 10px;
-      max-width: 80%;
-    }
-    .user { background: var(--accent-color); color: #fff; align-self: flex-end; }
-    .bot { background: #f1f1f1; color: #222; align-self: flex-start; }
-
-    #chat-input {
-      display: flex;
-      border-top: 1px solid #ccc;
-      padding: 8px;
-      gap: 8px;
-    }
-
-    #chat-input input {
-      flex: 1;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      outline: none;
-    }
-
-    #chat-input button {
-      background: var(--accent-color);
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .small-note { font-size: 12px; color: #666; padding: 6px; text-align:center; }
-  </style>
+/* Responsive */
+@media (max-width: 700px) {
+  .nav-links {
+    flex-direction: column;
+  }
+  .features {
+    flex-direction: column;
+  }
+}
+</style>
 </head>
+
 <body class="white">
-  <nav>
-    <div class="logo">👉 Sr Website</div>
 
-    <div class="nav-links">
-      <a href="#">Home</a>
-      <a href="contact">Contact Us</a>
-      <a href="game">Games</a>
-      <a href="telegram">Offers & Deals</a>
-
-      <div class="dropdown">
-        <button class="dropbtn">Entertainment ▼</button>
-        <div class="dropdown-content">
-          <a href="joke">Jokes</a>
-          <a href="story">Stories</a>
-          <a href="motivation">Motivational Quotes</a>
-          <a href="reasoning">Reasoning & Quiz</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="right-section">
-      <div class="theme-buttons">
-        <div class="theme-btn red-btn" title="Red Theme" onclick="setTheme('red')"></div>
-        <div class="theme-btn dark-btn" title="Dark Theme" onclick="setTheme('dark')"></div>
-        <div class="theme-btn white-btn" title="White Theme" onclick="setTheme('white')"></div>
-      </div>
-      <img src="static/profile.jpg" alt="Profile" class="profile-icon">
-    </div>
-  </nav>
-
-  <!-- About Website -->
-  <div class="section">
-    <h2>🌟 This website is launched on the occsion of OWNER birhtday on 14/10/2025</h2>
-    <img src="static/welcome.png" alt="Website Overview">
-    <p>This website is created FOR ENJOYING IN FREE TIME AND KNOW ABOUT THE OWNER</p>
+<nav>
+  <div class="logo" onclick="location.href='/'">
+    <span class="logo-icon">🚀</span>
+    <span>SR WEBSITE</span>
   </div>
 
-  <!-- Features -->
-  <div class="section">
-    <h2>⚡ Features</h2>
-    <div class="features">
-      <div class="feature-card">
-        <h3>Interactive Games</h3>
-        <p>Play multiple quizzes and reasoning games with scores and timers.</p>
-      </div>
-      <div class="feature-card">
-        <h3>Jokes & Stories</h3>
-        <p>Enjoy hundreds of jokes and engaging stories in Hindi .</p>
-      </div>
-      <div class="feature-card">
-        <h3>Motivation</h3>
-        <p>Daily motivational quotes to keep you inspired and productive.</p>
-      </div>
-      <div class="feature-card">
-        <h3>Themes</h3>
-        <p>Switch between white, dark, and red themes for comfortable viewing.</p>
+  <div class="nav-links">
+    <a href="#">Home</a>
+    <a href="contact">Contact</a>
+    <a href="game">Games</a>
+    <a href="telegram">Offers</a>
+
+    <div class="dropdown">
+      <button class="dropbtn">Entertainment ▼</button>
+      <div class="dropdown-content">
+        <a href="joke">Jokes</a>
+        <a href="story">Stories</a>
+        <a href="motivation">Motivation</a>
+        <a href="reasoning">Quiz</a>
       </div>
     </div>
   </div>
 
-  <!-- Gallery -->
-  <div class="section">
-    <h2>📸 Photo Gallery</h2>
-    <img src="static/photo.jpg" alt="Photo 1">
-    <img src="static/group.jpg" alt="Photo 2">
+  <div class="right-section">
+    <div class="theme-btn red-btn" onclick="setTheme('red')"></div>
+    <div class="theme-btn dark-btn" onclick="setTheme('dark')"></div>
+    <div class="theme-btn white-btn" onclick="setTheme('white')"></div>
   </div>
+</nav>
 
-  <!-- Chatbot -->
-  <button id="chatbot-btn" aria-label="Open chat">💬</button>
+<!-- About -->
+<div class="section">
+  <h2>🌟 Website Launch</h2>
+  <p>This website is launched on the occasion of the owner’s birthday 🎉 (14/10/2025).</p>
+</div>
 
-  <div id="chat-window" role="dialog" aria-label="Chat with Buniya">
-    <div id="chat-header">🤖 Chat with Buniya</div>
-    <div id="chat-messages" aria-live="polite"></div>
+<!-- Features -->
+<div class="section">
+  <h2>⚡ Features</h2>
+  <div class="features">
+    <div class="feature-card">🎮 Interactive Games</div>
+    <div class="feature-card">😂 Jokes & Stories</div>
+    <div class="feature-card">🔥 Motivation</div>
+    <div class="feature-card">🎨 Theme Switcher</div>
+  </div>
+</div>
 
-    <div class="small-note">Buniya is the site's AI. Ask: "Who made this site?"" or "Tell me about this website".</div>
+<!-- Bot Button -->
+<button id="bot-btn" onclick="openBot()">🤖</button>
 
-    <div id="chat-input">
-      <input type="who made this site?" id= placeholder="This site is made by SAURAV RAJ . A JEE aspirant" />
-      <button id="sendBtn">Send</button>
-    </div>
-  <script>
-    function setTheme(theme){
-      document.body.className = theme;
-      localStorage.setItem('theme', theme);
-    }
+<script>
+function setTheme(theme) {
+  document.body.className = theme;
+  localStorage.setItem("theme", theme);
+}
 
-    window.onload = () => {
-      const savedTheme = localStorage.getItem('theme');
-      if(savedTheme) setTheme(savedTheme);
-    }
+window.onload = () => {
+  const t = localStorage.getItem("theme");
+  if (t) setTheme(t);
+};
 
-    // Chatbot UI
-    const chatBtn = document.getElementById('chatbot-btn');
-    const chatWindow = document.getElementById('chat-window');
-    const messages = document.getElementById('chat-messages');
-    const input = document.getElementById('userInput');
-    const sendBtn = document.getElementById('sendBtn');
+function openBot() {
+  window.open("https://your-bot-link.com", "_blank");
+}
+</script>
 
-    chatBtn.addEventListener('click', () => {
-      chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
-      // show initial greeting from Buniya when opening
-      if (chatWindow.style.display === 'flex' && messages.children.length === 0) {
-        appendMessage("Hi! I'm Buniya 🤖 — I can introduce the site's owner and explain the website. Ask me anything!", 'bot');
-      }
-    });
-
-    function appendMessage(content, sender) {
-      const msg = document.createElement('div');
-      msg.classList.add('msg', sender);
-      msg.textContent = content;
-      messages.appendChild(msg);
-      messages.scrollTop = messages.scrollHeight;
-    }
-
-    sendBtn.addEventListener('click', sendMessage);
-    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
-
-    // -------------------------
-    // IMPORTANT: secure backend approach
-    // The front-end will POST user messages to /chat (on your server).
-    // The server uses your API key (stored in env var) to call the LLM provider.
-    // -------------------------
-    async function sendMessage() {
-      const text = input.value.trim();
-      if (!text) return;
-      appendMessage(text, 'user');
-      input.value = '';
-      // show a small "typing" bot message placeholder
-      const typingId = showTyping();
-
-      try {
-        // POST to your backend endpoint that will forward to the LLM provider using your API key.
-        // Replace '/chat' with the correct path if different.
-        const res = await fetch('/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: text
-          })
-        });
-
-        if (!res.ok) {
-          throw new Error('Server error: ' + res.status);
-        }
-
-        const data = await res.json();
-        // expected backend response: { reply: "..." }
-        removeTyping(typingId);
-        appendMessage(data.reply || "Sorry, I didn't get a reply.", 'bot');
-
-      } catch (err) {
-        removeTyping(typingId);
-        appendMessage("⚠️ Error: " + err.message + ".Thanks for searching but  sorry as bot is not ready to give  your answer  i will shortly fix this problem:-SAURAV", 'bot');
-      }
-    }
-
-    function showTyping() {
-      const id = 'typing-' + Date.now();
-      const el = document.createElement('div');
-      el.id = id;
-      el.classList.add('msg', 'bot');
-      el.textContent = 'Buniya is typing…';
-      messages.appendChild(el);
-      messages.scrollTop = messages.scrollHeight;
-      return id;
-    }
-    function removeTyping(id) {
-      const el = document.getElementById(id);
-      if (el) el.remove();
-    }
-
-    // -------------------------
-    // OPTIONAL: Quick local test (UNSAFE) — for local development only.
-    // Do NOT use on a public site. This shows where a key would go if you
-    // were testing locally without a backend (again: insecure).
-    //
-    // Example (unsafe):
-    // const INSECURE_API_KEY = 'sk-REPLACE_WITH_YOUR_KEY'; // DO NOT USE IN PRODUCTION
-    // -------------------------
-  </script>
 </body>
 </html>
