@@ -147,8 +147,10 @@ nav {
 
 .section h2 {
   color: var(--accent-color);
+  margin-bottom: 20px;
 }
 
+/* Features */
 .features {
   display: flex;
   flex-wrap: wrap;
@@ -161,12 +163,29 @@ nav {
   color: #222;
   padding: 20px;
   border-radius: 12px;
+  transition: 0.3s;
+}
+
+.feature-card h3 {
+  margin-top: 0;
 }
 
 .feature-card:hover {
   transform: translateY(-5px);
-  transition: 0.3s;
   box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* Gallery */
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.gallery img {
+  flex: 1 1 280px;
+  max-width: 100%;
+  border-radius: 12px;
 }
 
 /* Bot Button */
@@ -194,7 +213,7 @@ nav {
   .nav-links {
     flex-direction: column;
   }
-  .features {
+  .features, .gallery {
     flex-direction: column;
   }
 }
@@ -236,17 +255,41 @@ nav {
 <!-- About -->
 <div class="section">
   <h2>🌟 Website Launch</h2>
-  <p>This website is launched on the occasion of the owner’s birthday 🎉 (14/10/2025).</p>
+  <p>
+    This website is launched on the occasion of the owner’s birthday 🎉  
+    (14/10/2025). It is made for fun, learning, and entertainment during free time.
+  </p>
 </div>
 
 <!-- Features -->
 <div class="section">
   <h2>⚡ Features</h2>
   <div class="features">
-    <div class="feature-card">🎮 Interactive Games</div>
-    <div class="feature-card">😂 Jokes & Stories</div>
-    <div class="feature-card">🔥 Motivation</div>
-    <div class="feature-card">🎨 Theme Switcher</div>
+    <div class="feature-card">
+      <h3>🎮 Interactive Games</h3>
+      <p>Play fun games, quizzes, and reasoning challenges to test your skills.</p>
+    </div>
+    <div class="feature-card">
+      <h3>😂 Jokes & Stories</h3>
+      <p>Enjoy jokes and short stories in Hindi for daily entertainment.</p>
+    </div>
+    <div class="feature-card">
+      <h3>🔥 Motivation</h3>
+      <p>Read motivational quotes to stay focused and positive every day.</p>
+    </div>
+    <div class="feature-card">
+      <h3>🎨 Theme Switcher</h3>
+      <p>Switch between white, dark, and red themes for better comfort.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Gallery (RESTORED) -->
+<div class="section">
+  <h2>📸 Photo Gallery</h2>
+  <div class="gallery">
+    <img src="static/photo.jpg" alt="Gallery Photo 1">
+    <img src="static/group.jpg" alt="Gallery Photo 2">
   </div>
 </div>
 
@@ -265,7 +308,7 @@ window.onload = () => {
 };
 
 function openBot() {
-  window.open("https://indiana1410.onrender.com", "_blank");
+  window.open("https://your-bot-link.com", "_blank");
 }
 </script>
 
